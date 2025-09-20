@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import Icon from '@/components/ui/icon';
+import PerformanceChart from '@/components/PerformanceChart';
 
 interface EquipmentData {
   id: string;
@@ -24,8 +25,25 @@ interface AlertData {
   equipment: string;
 }
 
+interface ChartData {
+  time: string;
+  power: number;
+  temperature: number;
+  efficiency: number;
+}
+
 const Index: React.FC = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [chartData, setChartData] = useState<ChartData[]>([
+    { time: '14:25', power: 720, temperature: 485, efficiency: 92 },
+    { time: '14:26', power: 718, temperature: 487, efficiency: 91 },
+    { time: '14:27', power: 722, temperature: 489, efficiency: 93 },
+    { time: '14:28', power: 715, temperature: 492, efficiency: 90 },
+    { time: '14:29', power: 720, temperature: 485, efficiency: 92 },
+    { time: '14:30', power: 725, temperature: 483, efficiency: 94 },
+    { time: '14:31', power: 719, temperature: 488, efficiency: 91 },
+    { time: '14:32', power: 720, temperature: 485, efficiency: 92 }
+  ]);
   const [equipmentData, setEquipmentData] = useState<EquipmentData[]>([
     {
       id: '1',
@@ -92,7 +110,31 @@ const Index: React.FC = () => {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
-    }, 1000);
+      
+      // Симулируем обновление данных графика
+      const newTime = new Date().toLocaleTimeString('ru-RU', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
+      
+      setChartData(prev => {
+        const newData = [...prev];
+        if (newData.length >= 8) {
+          newData.shift(); // удаляем старые данные
+        }
+        
+        // Добавляем новую точку с небольшими вариациями
+        const lastPoint = newData[newData.length - 1];
+        newData.push({
+          time: newTime,
+          power: lastPoint.power + (Math.random() - 0.5) * 10,
+          temperature: lastPoint.temperature + (Math.random() - 0.5) * 8,
+          efficiency: Math.max(85, Math.min(95, lastPoint.efficiency + (Math.random() - 0.5) * 3))
+        });
+        
+        return newData;
+      });
+    }, 5000); // обновляем каждые 5 секунд
 
     return () => clearInterval(timer);
   }, []);
@@ -298,8 +340,25 @@ const Index: React.FC = () => {
           </Card>
         </div>
 
-        {/* Alerts and Controls */}
+        {/* Charts and Alerts */}
         <div className="space-y-6">
+          {/* Performance Charts */}
+          <Card className="bg-gray-800 border-gray-700">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2 text-white">
+                <Icon name="TrendingUp" size={24} />
+                <span>Мониторинг Производительности</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <PerformanceChart 
+                data={chartData}
+                title="Общие Показатели Станции" 
+                height={250}
+              />
+            </CardContent>
+          </Card>
+
           {/* Alert System */}
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader>
